@@ -1,12 +1,10 @@
-# Copyright (c) 2020 Graphcore Ltd. All rights reserved.
+# Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 
 import torch
-import torchvision
 import torch.nn as nn
-import matplotlib.pyplot as plt
+import torchvision
+from sklearn.metrics import accuracy_score
 from tqdm import tqdm
-from sklearn.metrics import accuracy_score, confusion_matrix
-from torch.utils import data as torch_data
 
 
 class ClassificationModel(nn.Module):
@@ -30,6 +28,7 @@ class ClassificationModel(nn.Module):
 
         return x
 
+
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
@@ -45,17 +44,13 @@ if __name__ == '__main__':
     test_dataset = torchvision.datasets.FashionMNIST(
         "~/.torch/datasets", transform=transform, download=True, train=False)
 
-    classes = ("T-shirt", "Trouser", "Pullover", "Dress", "Coat", "Sandal",
-               "Shirt", "Sneaker", "Bag", "Ankle boot")
-
-
     model = ClassificationModel()
     model.train()
     model = model.to(device)
 
-    train_dataloader = torch_data.DataLoader(train_dataset,
-                                           batch_size=16,
-                                           shuffle=True)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset,
+                                             batch_size=16,
+                                             shuffle=True)
 
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     criterion = nn.NLLLoss()
@@ -73,14 +68,12 @@ if __name__ == '__main__':
             loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
-            
-            bar.set_postfix({"Loss": torch.mean(loss).item()})
 
+            bar.set_postfix({"Loss": torch.mean(loss).item()})
 
     model = model.eval()
 
-    test_dataloader = torch_data.DataLoader(test_dataset,
-                                          batch_size=32)
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=32)
 
     predictions, labels = [], []
     for data, label in test_dataloader:

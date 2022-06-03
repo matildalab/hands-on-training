@@ -1,12 +1,11 @@
-# Copyright (c) 2020 Graphcore Ltd. All rights reserved.
+# Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 
-import torch
-import torchvision
-import torch.nn as nn
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-from sklearn.metrics import accuracy_score, confusion_matrix
 import poptorch
+import torch
+import torch.nn as nn
+import torchvision
+from sklearn.metrics import accuracy_score
+from tqdm import tqdm
 
 
 class ClassificationModel(nn.Module):
@@ -36,7 +35,7 @@ class ModelwithLoss(nn.Module):
         super().__init__()
         self.model = model
         self.criterion = criterion
-    
+
     def forward(self, x, labels=None):
         output = self.model(x)
         if labels is not None:
@@ -57,10 +56,6 @@ if __name__ == '__main__':
     test_dataset = torchvision.datasets.FashionMNIST(
         "~/.torch/datasets", transform=transform, download=True, train=False)
 
-    classes = ("T-shirt", "Trouser", "Pullover", "Dress", "Coat", "Sandal",
-            "Shirt", "Sneaker", "Bag", "Ankle boot")
-
-
     opts = poptorch.Options()
     opts.enableExecutableCaching('cache')
 
@@ -68,15 +63,15 @@ if __name__ == '__main__':
     model.train()
 
     train_dataloader = poptorch.DataLoader(opts,
-                                        train_dataset,
-                                        batch_size=16,
-                                        shuffle=True)
+                                           train_dataset,
+                                           batch_size=16,
+                                           shuffle=True)
 
     optimizer = poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     criterion = nn.NLLLoss()
 
     model = ModelwithLoss(model, criterion)
-    poptorch_model = poptorch.trainingModel(model,
+    training_model = poptorch.trainingModel(model,
                                             options=opts,
                                             optimizer=optimizer)
 
@@ -85,23 +80,23 @@ if __name__ == '__main__':
         bar = tqdm(train_dataloader, total=len(train_dataloader))
         bar.set_description(f'[Epoch {epoch:02d}]')
         for data, labels in bar:
-            output, loss = poptorch_model(data, labels)
+            output, loss = training_model(data, labels)
             bar.set_postfix({"Loss": torch.mean(loss).item()})
 
-    poptorch_model.detachFromDevice()
+    training_model.detachFromDevice()
 
     model = model.eval()
-    poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
+    inference_model = poptorch.inferenceModel(model, options=opts)
 
     test_dataloader = poptorch.DataLoader(opts,
-                                        test_dataset,
-                                        batch_size=32)
+                                          test_dataset,
+                                          batch_size=32)
 
     predictions, labels = [], []
     for data, label in test_dataloader:
-        predictions += poptorch_model_inf(data).data.max(dim=1).indices
+        predictions += inference_model(data).data.max(dim=1).indices
         labels += label
 
-    poptorch_model_inf.detachFromDevice()
+    inference_model.detachFromDevice()
 
     print(f"Eval accuracy: {100 * accuracy_score(labels, predictions):.2f}%")
