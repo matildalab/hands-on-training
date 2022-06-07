@@ -6,7 +6,6 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='CNN training in PopTorch')
     parser.add_argument('--batch-size', default=32, type=int, help='batch size')
     parser.add_argument('--epochs', default=5, type=int, help='epochs for training')
-    parser.add_argument('--pipeline-splits', type=str, nargs='+', default=[], help="List of the splitting layers")
     parser.add_argument('--replication', default=1, type=int, help='replication factor for data parallel')
     parser.add_argument('--precision', choices=['16.16', '16.32', '32.32'], default='16.16', help="Precision of Ops(weights/activations/gradients) and Master data types: 16.16, 16.32, 32.32")
     parser.add_argument('--gradient-accumulation', default=1, type=int, help='gradient accumulation')
