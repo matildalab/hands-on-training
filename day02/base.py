@@ -29,9 +29,10 @@ if __name__ == '__main__':
                     torchvision.transforms.ToTensor(),
                     torchvision.transforms.Resize((64, 64))])
 
-    train_dataset = torchvision.datasets.CIFAR10(root='./dataset', train=True, download=True, transform=transform)
+    train_dataset = torchvision.datasets.CIFAR10(root='../datasets', train=True, download=True, transform=transform)
 
     opts = poptorch.Options()
+    opts.enableExecutableCaching('../cache')
 
     model = torchvision.models.resnet50()
     print(model)
@@ -49,7 +50,7 @@ if __name__ == '__main__':
                                             options=opts,
                                             optimizer=optimizer)
 
-    epochs = 1
+    epochs = 5
     for epoch in range(1, epochs + 1):
         bar = tqdm(train_dataloader, total=len(train_dataloader))
         bar.set_description(f'[Epoch {epoch:02d}]')

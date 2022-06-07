@@ -39,10 +39,10 @@ if __name__ == '__main__':
     )
 
     train_dataset = torchvision.datasets.FashionMNIST(
-        "~/.torch/datasets", transform=transform, download=True, train=True)
+        "../datasets", transform=transform, download=True, train=True)
 
     test_dataset = torchvision.datasets.FashionMNIST(
-        "~/.torch/datasets", transform=transform, download=True, train=False)
+        "../datasets", transform=transform, download=True, train=False)
 
     model = ClassificationModel()
     model.train()
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     criterion = nn.NLLLoss()
 
-    epochs = 10
+    epochs = 5
     for epoch in range(1, epochs + 1):
         bar = tqdm(train_dataloader, total=len(train_dataloader))
         bar.set_description(f'[Epoch {epoch:02d}]')
