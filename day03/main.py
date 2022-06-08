@@ -6,6 +6,7 @@ import torch.nn as nn
 from tqdm import tqdm
 import poptorch
 import utils
+from utils import NormalizeInputModel
 
 
 class ModelwithLoss(nn.Module):
@@ -31,12 +32,7 @@ if __name__ == '__main__':
     args = utils.parse_arguments()
     opts = utils.set_ipu_options(args)
 
-    transform = torchvision.transforms.Compose([
-                    torchvision.transforms.Pad(4),
-                    torchvision.transforms.RandomHorizontalFlip(),
-                    torchvision.transforms.RandomCrop(32),
-                    torchvision.transforms.ToTensor(),
-                    torchvision.transforms.Resize((64, 64))])
+    transform = utils.get_preprocessing_pipeline(args.precision, args.eight_bit_io)
     
     train_dataset = torchvision.datasets.CIFAR10(root='../datasets', train=True, download=True, transform=transform)
     
@@ -64,6 +60,17 @@ if __name__ == '__main__':
         optimizer = poptorch.optim.AdamW(model.parameters(), lr=0.001)
     criterion = torch.nn.CrossEntropyLoss()
 
+    if args.eight_bit_io:
+        """
+        Conduct normalization on IPU when eight-bit-io is enabled.
+        """
+        cast = "half" if args.precision[:3] == "16." else "full"
+        model = NormalizeInputModel(
+            model,
+            utils.normalization_parameters["mean"],
+            utils.normalization_parameters["std"],
+            output_cast=cast
+        )
     model = ModelwithLoss(model, criterion, args.precision)
     if args.precision[-3:] == '.16':
         model = model.half()  
@@ -76,10 +83,6 @@ if __name__ == '__main__':
         bar = tqdm(train_dataloader, total=len(train_dataloader))
         bar.set_description(f'[Epoch {epoch:02d}]')
         for data, labels in bar:
-            if args.eight_bit_io:
-                data = data.byte()
-            elif args.precision[:3] == '16.':
-                data = data.half()
             output, loss = poptorch_model(data, labels)
             bar.set_postfix({"Loss": torch.mean(loss).item()})
 
