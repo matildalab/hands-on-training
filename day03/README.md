@@ -60,7 +60,7 @@ Gradient accumulation can be set via poptorch option:
 opts = poptorch.Options()
 opts.Training.gradientAccumulation(args.gradient_accumulation)
 ```
-More information can be found in the [documentation]([documentaion](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-options-training-gradientaccumulation)).
+More information can be found in the [documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-options-training-gradientaccumulation).
 
 ## Device Iterations
 
@@ -86,7 +86,7 @@ Device iterations can be set via poptorch option:
 opts = poptorch.Options()
 opts.deviceIterations(args.device_iterations)
 ```
-More information can be found in the [documentation]([documentaion](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-options-deviceiterations)).
+More information can be found in the [documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-options-deviceiterations).
 
 ## 8-bit I/O
 
