@@ -80,7 +80,8 @@ Graph compilation: 100%|██████████████████�
 
 ## Asynchronous Data Loading
 ```bash
-$ python main.py --gradient-accumulation 8 --device-iterations 4 --eight-bit-io --async-dataloaderNamespace(async_dataloader=True, batch_size=32, device_iterations=4, eight_bit_io=True, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
+$ python main.py --gradient-accumulation 8 --device-iterations 4 --eight-bit-io --async-dataloader
+Namespace(async_dataloader=True, batch_size=32, device_iterations=4, eight_bit_io=True, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
 Files already downloaded and verified
 Graph compilation: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [07:25<00:00]
 [Epoch 01]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [07:47<00:00,  9.74s/it, Loss=1.52]
