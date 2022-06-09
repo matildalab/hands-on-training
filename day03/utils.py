@@ -1,11 +1,15 @@
 # Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 
 import argparse
-from typing import List
 
 import poptorch
 import torch
 from torchvision import transforms
+
+IMAGENET_STATISTICS = {
+    'mean': [0.485, 0.456, 0.406],
+    'std': [0.229, 0.224, 0.225]
+}
 
 
 def parse_arguments():
@@ -43,47 +47,20 @@ def get_transform(precision='16.16', eight_bit_io=False):
 
     if not eight_bit_io:
         dtype = torch.float16 if precision[:2] == '16' else torch.float32
-        preprocssing_steps.extend([CastTo(dtype), Normalize(dtype)])
+        preprocssing_steps.extend([
+            transforms.ConvertImageDtype(dtype),
+            transforms.Normalize(**IMAGENET_STATISTICS)
+        ])
 
     return transforms.Compose(preprocssing_steps)
 
 
-class CastTo(torch.nn.Module):
-    def __init__(self, dtype: torch.dtype):
-        super().__init__()
-        self.dtype = dtype
-
-    def forward(self, tensor):
-        return tensor.to(self.dtype)
-
-
-class Normalize(torch.nn.Module):
-    def __init__(
-            self, dtype: torch.dtype,
-            mean: List[float] = [0.485, 0.456, 0.406],
-            std: List[float] = [0.229, 0.224, 0.225]
-    ):
-        super().__init__()
-        mean = torch.as_tensor(mean, dtype=dtype)
-        std = torch.as_tensor(std, dtype=dtype)
-        self.mul = (1.0 / (255.0 * std)).view(3, 1, 1)
-        self.sub = (mean / std).view(3, 1, 1)
-
-    def forward(self, tensor):
-        # same as ((tensor / 255) - mean) / std
-        return tensor.mul(self.mul).sub(self.sub)
-
-
 class ModelWithNormalization(torch.nn.Module):
-    def __init__(
-            self, model: torch.nn.Module, dtype: torch.dtype,
-            mean: List[float] = [0.485, 0.456, 0.406],
-            std: List[float] = [0.229, 0.224, 0.225]
-    ):
+    def __init__(self, model: torch.nn.Module, dtype: torch.dtype):
         super().__init__()
         self.model = model
         self.dtype = dtype
-        self.normalize = Normalize(dtype, mean, std)
+        self.normalize = transforms.Normalize(**IMAGENET_STATISTICS)
 
     def forward(self, img):
         # One-liner in Poplar SDK >= 2.6:
