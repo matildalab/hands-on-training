@@ -14,8 +14,8 @@ from tqdm import tqdm
 - If `poprun` is invoked, initialize horovod.
 ```diff
 if __name__ == '__main__':
-    + if popdist.isPopdistEnvSet():
-    +     hvd.init()
++   if popdist.isPopdistEnvSet():
++       hvd.init()
     args = parse_arguments()
     opts = set_ipu_options(args)
     print(args)
@@ -23,8 +23,9 @@ if __name__ == '__main__':
 - If `poprun` is invoked, enable the progress bar only for the instance 0.
 (Otherwise, the output will look messy.)
 ```diff
--        bar = tqdm(train_dataloader, total=len(train_dataloader))
-+        bar = tqdm(train_dataloader, total=len(train_dataloader), disable=popdist.getInstanceIndex() != 0)
+        bar = tqdm(train_dataloader, total=len(train_dataloader)
++                  , disable=popdist.getInstanceIndex() != 0
+        )
 ```
 - When `poprun` is invoked, perform allreduce operator with horovod after each training iteration to synchronize different loss values over multiple instances.
 ```diff
@@ -32,8 +33,8 @@ for data, labels in bar:
     outputs, losses, accuracies = poptorch_model(data, labels)
     loss = torch.mean(losses)
     accuracy = torch.mean(accuracies)
-+    if popdist.isPopdistEnvSet():
-+        loss, accuracy = hvd.grouped_allreduce([loss, accuracy], op=hvd.Average)
++   if popdist.isPopdistEnvSet():
++       loss, accuracy = hvd.grouped_allreduce([loss, accuracy], op=hvd.Average)
     loss_values.append(loss.item())
     accuracy_values.append(accuracy.item())
     bar.set_postfix({'loss': loss.item(), 'acc': accuracy.item()})
@@ -41,9 +42,9 @@ for data, labels in bar:
 - Modify the message format for better readability when `poprun` is invoked.
 ```diff
 +if popdist.isPopdistEnvSet() and popdist.getInstanceIndex() == 0:
-+    print(f'\n[Epoch {epoch:02d}] loss: {epoch_loss:.3f}, acc: {epoch_accuracy:.1f}', end='')
++   print(f'\n[Epoch {epoch:02d}] loss: {epoch_loss:.3f}, acc: {epoch_accuracy:.1f}', end='')
 +elif not popdist.isPopdistEnvSet():
-+"    "print(f'[Epoch {epoch:02d}] loss: {epoch_loss:.3f}, acc: {epoch_accuracy:.1f}')
+    print(f'[Epoch {epoch:02d}] loss: {epoch_loss:.3f}, acc: {epoch_accuracy:.1f}')
 ```
 
 ### Modifying [day03/utils.py](../../day03/utils.py)
@@ -58,7 +59,7 @@ import torch
 ```
 - When `poprun` is invoked, replication factor needs to be set via `poprun`.
 ```diff
-+    if not popdist.isPopdistEnvSet():
++   if not popdist.isPopdistEnvSet():
         parser.add_argument('--replicas', default=1, type=int, help='replication factor for data parallel')
 ```
 - If `poprun` is invoked, use `popdist.poptorch.Options` instead of `poptorch.Options`.
@@ -68,19 +69,18 @@ In addition, you need to set a few other options.
   * `opts.Training.accumulationAndReplicationReductionType(poptorch.ReductionType.Sum)` - Note that this option defaults to `poptorch.ReductionType.Mean`, which can cause smoothing of gradients when using (distributed) data parallelism.
 ```diff
 def set_ipu_options(args):
--    opts = poptorch.Options()
-+    if popdist.isPopdistEnvSet():
-+        opts = popdist.poptorch.Options()
-+        opts.randomSeed(2022)
-+        opts.showCompilationProgressBar(popdist.getInstanceIndex() == 0)
-+    else:
-+        opts = poptorch.Options()
-+        opts.replicationFactor(args.replicas)
++   if popdist.isPopdistEnvSet():
++       opts = popdist.poptorch.Options()
++       opts.randomSeed(2022)
++       opts.showCompilationProgressBar(popdist.getInstanceIndex() == 0)
++   else:
+        opts = poptorch.Options()
++       opts.replicationFactor(args.replicas)
     opts.enableExecutableCaching('../cache')
     opts.Training.gradientAccumulation(args.gradient_accumulation)
-+    opts.Training.accumulationAndReplicationReductionType(poptorch.ReductionType.Sum)
++   opts.Training.accumulationAndReplicationReductionType(poptorch.ReductionType.Sum)
     opts.deviceIterations(args.device_iterations)
--    opts.replicationFactor(args.replicas)
+-   opts.replicationFactor(args.replicas)
     return opts
 ```
 
