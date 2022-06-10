@@ -10,7 +10,7 @@ This is a summary for what happens during the training loop:
 - Step 4: IPUs send the outputs and losses back to the host
 - Step 5: The host performs post-processes the outputs and losses.
 
-```marmaid
+```mermaid
 flowchart LR
     subgraph r0[Replica]
         subgraph model[Model]
@@ -30,7 +30,7 @@ flowchart LR
 ##  Data Parallelism
 You can boost the training with more IPUs using data parallelism.
 In other words, you can run the step 3 with more than one replicas of the model.
-```marmaid
+```mermaid
 flowchart LR
     subgraph h0[Host 0]
     p0([Process 0])
@@ -91,7 +91,7 @@ As you may have noticed, even though we have used 8 IPUs, the training time is a
 This is due to the extra bottleneck introduced in step 1 and step 2 since the host needs to prefetch more input data for the replicas.
 
 In order to make the data parallelism more efficient, step 1 must be parallelized as well by using more host processes.
-```marmaid
+```mermaid
 flowchart LR
     subgraph h0[Host 0]
     p0([Process 0])
@@ -122,7 +122,7 @@ flowchart LR
 ```
 
 Furthermore, if you have more than one host servers configured with your IPU-POD, you may want to utilize multiple hosts.
-```marmaid
+```mermaid
 flowchart LR
     subgraph h1[Host 1]
     p4([Process 4])
