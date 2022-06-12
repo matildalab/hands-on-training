@@ -586,18 +586,7 @@ h3w-.->ipu7w
 ```
 
 4. Feed different data to each replica.
-<style>
-table, th, td {
-  border: 1px solid black;
-  border-collapse: collapse;
-}
-
-table.center {
-  margin-left: auto; 
-  margin-right: auto;
-}
-</style>
-<table class="center"><tbody align="center">
+<table><tbody align="center">
   <tr>
     <th> Dataset </th>
     <td colspan=8>D</td>
