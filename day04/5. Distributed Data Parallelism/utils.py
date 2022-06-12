@@ -2,6 +2,8 @@
 
 import argparse
 
+import popdist
+import popdist.poptorch
 import poptorch
 import torch
 from torchvision import transforms
@@ -23,15 +25,23 @@ def parse_arguments():
     parser.add_argument('--device-iterations', default=1, type=int, help='device iteration')
     parser.add_argument('--async-dataloader', action='store_true', help="use async io mode for dataloader")
     parser.add_argument('--eight-bit-io', action='store_true', help="set input io to eight bit")
-    parser.add_argument('--replicas', default=1, type=int, help='replication factor for data parallel')
+    if not popdist.isPopdistEnvSet():
+        parser.add_argument('--replicas', default=1, type=int, help='replication factor for data parallel')
     return parser.parse_args()
 
 
 def set_ipu_options(args):
-    opts = poptorch.Options()
+    if popdist.isPopdistEnvSet():
+        opts = popdist.poptorch.Options()
+        opts.randomSeed(2022)
+        opts.showCompilationProgressBar(popdist.getInstanceIndex() == 0)
+    else:
+        opts = poptorch.Options()
+        opts.replicationFactor(args.replicas)
+    opts.enableExecutableCaching('../../cache')
     opts.Training.gradientAccumulation(args.gradient_accumulation)
+    opts.Training.accumulationAndReplicationReductionType(poptorch.ReductionType.Sum)
     opts.deviceIterations(args.device_iterations)
-    opts.replicationFactor(args.replicas)
     return opts
 
 

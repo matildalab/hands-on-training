@@ -1,8 +1,9 @@
 # Copyright (c) 2022 Graphcore Ltd. All rights reserved.
-
+import popdist
 import poptorch
 import torch
 import torchvision
+import horovod.torch as hvd
 from tqdm import tqdm
 
 from utils import (
@@ -32,18 +33,21 @@ class ModelwithLoss(torch.nn.Module):
 
 
 if __name__ == '__main__':
+    if popdist.isPopdistEnvSet():
+        hvd.init()
     args = parse_arguments()
     opts = set_ipu_options(args)
     print(args)
 
     transform = get_transform(args.precision, args.eight_bit_io)
-    train_dataset = torchvision.datasets.CIFAR10(root='../datasets', train=True, download=True, transform=transform)
+    train_dataset = torchvision.datasets.CIFAR10(root='../../datasets', train=True, download=True, transform=transform)
 
     mode = poptorch.DataLoaderMode.Async if args.async_dataloader \
         else poptorch.DataLoaderMode.Sync
 
     train_dataloader = poptorch.DataLoader(opts,
                                            train_dataset,
+                                           num_workers=4,
                                            batch_size=args.batch_size,
                                            shuffle=True,
                                            mode=mode)
@@ -73,7 +77,7 @@ if __name__ == '__main__':
 
     epochs = args.epochs
     for epoch in range(1, epochs + 1):
-        bar = tqdm(train_dataloader, total=len(train_dataloader))
+        bar = tqdm(train_dataloader, total=len(train_dataloader), disable=popdist.getInstanceIndex() != 0)
         bar.set_description(f'[Epoch {epoch:02d}]')
         loss_values = []
         accuracy_values = []
@@ -81,9 +85,14 @@ if __name__ == '__main__':
             outputs, losses, accuracies = poptorch_model(data, labels)
             loss = torch.mean(losses)
             accuracy = torch.mean(accuracies)
+            if popdist.isPopdistEnvSet():
+                loss, accuracy = hvd.grouped_allreduce([loss, accuracy], op=hvd.Average)
             loss_values.append(loss.item())
             accuracy_values.append(accuracy.item())
             bar.set_postfix({'loss': loss.item(), 'acc': accuracy.item()})
         epoch_loss = torch.as_tensor(loss_values).mean().item()
         epoch_accuracy = torch.as_tensor(accuracy_values).mean().item()
-        print(f'[Epoch {epoch:02d}] loss: {epoch_loss:.3f}, acc: {epoch_accuracy:.1f}')
+        if popdist.isPopdistEnvSet() and popdist.getInstanceIndex() == 0:
+            print(f'\n[Epoch {epoch:02d}] loss: {epoch_loss:.3f}, acc: {epoch_accuracy:.1f}', end='')
+        elif not popdist.isPopdistEnvSet():
+            print(f'[Epoch {epoch:02d}] loss: {epoch_loss:.3f}, acc: {epoch_accuracy:.1f}')
