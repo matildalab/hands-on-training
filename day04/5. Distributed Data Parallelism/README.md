@@ -586,20 +586,31 @@ h3w-.->ipu7w
 ```
 
 4. Feed different data to each replica.
-<table><tbody align="center">
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+table.center {
+  margin-left: auto; 
+  margin-right: auto;
+}
+</style>
+<table class="center"><tbody align="center">
   <tr>
-    <td> Dataset </td>
+    <th> Dataset </th>
     <td colspan=8>D</td>
   </tr>
   <tr>
-    <td> Instance Split </td>
+    <th> Instance Split </th>
     <td colspan=2> D01 </td>
     <td colspan=2> D23 </td>
     <td colspan=2> D45 </td>
     <td colspan=2> D67 </td>
   </tr>
   <tr>
-    <td> Replica Split </td>
+    <th> Replica Split </th>
     <td> D0 </td>
     <td> D1 </td>
     <td> D2 </td>
@@ -786,7 +797,7 @@ h0<-->r1
 ```
 
 6. [GCL (Graphcore Communication Library)](https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/gcl.html)
-performs cross-replica sum (or mean) of gradients over IPU-links or Gateway links.
+performs cross-replica sum (or mean) of gradients over IPU links or Gateway links.
 
 ```mermaid
 flowchart LR
