@@ -85,9 +85,9 @@ You can set the number of instances by passing `--num-instances <integer value>`
 When you launch your model's training script written with PopTorch and PopDist, you can also
 set the total number of model replicas by passing `--num-replicas <integer value>` to `poprun`.
 
-For example, by specifying `--num-replicas 8` and `--num-instances 2`, poprun generates configurations for
-distributed data parallel training under the hood such that the training is distributed over 2 instances (i.e. 2 host processes),
-each of which is responsible for 4 model replicas, and hence, 8 model replicas in total. (See the diagram below)
+For example, by specifying `--num-replicas 8` and `--num-instances 4`, poprun generates configurations for
+distributed data parallel training under the hood such that the training is distributed over 4 instances (i.e. 4 host processes),
+each of which is responsible for 2 model replicas, and hence, 8 model replicas in total. (See the diagram below)
 
 ```mermaid
 flowchart TD
