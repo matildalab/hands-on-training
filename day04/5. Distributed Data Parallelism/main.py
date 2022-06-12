@@ -47,6 +47,7 @@ if __name__ == '__main__':
 
     train_dataloader = poptorch.DataLoader(opts,
                                            train_dataset,
+                                           num_workers=4,
                                            batch_size=args.batch_size,
                                            shuffle=True,
                                            mode=mode)

@@ -2,7 +2,6 @@
 
 import poptorch
 import torch
-import torch.nn as nn
 import torchvision
 from tqdm import tqdm
 
@@ -12,7 +11,12 @@ from utils import (
 )
 
 
-class ModelwithLoss(nn.Module):
+def compute_accuracy(pred, labels):
+    _, ind = torch.max(pred, 1)
+    return torch.mean(torch.eq(ind, labels).to(pred.dtype)) * 100.0
+
+
+class ModelwithLoss(torch.nn.Module):
     def __init__(self, model, criterion):
         super().__init__()
         self.model = model
@@ -22,7 +26,8 @@ class ModelwithLoss(nn.Module):
         output = self.model(x)
         if labels is not None:
             loss = self.criterion(output, labels)
-            return output, poptorch.identity_loss(loss, reduction='sum')
+            accuracy = compute_accuracy(output, labels)
+            return output, poptorch.identity_loss(loss, reduction='sum'), accuracy
         return output
 
 
@@ -71,9 +76,14 @@ if __name__ == '__main__':
         bar = tqdm(train_dataloader, total=len(train_dataloader))
         bar.set_description(f'[Epoch {epoch:02d}]')
         loss_values = []
+        accuracy_values = []
         for data, labels in bar:
-            outputs, losses = poptorch_model(data, labels)
-            loss = torch.mean(losses).item()
-            loss_values.append(loss)
-            bar.set_postfix({"Loss": loss})
-        print(f'[Epoch {epoch:02d}] loss = {torch.as_tensor(loss_values).mean().item():.3f}')
+            outputs, losses, accuracies = poptorch_model(data, labels)
+            loss = torch.mean(losses)
+            accuracy = torch.mean(accuracies)
+            loss_values.append(loss.item())
+            accuracy_values.append(accuracy.item())
+            bar.set_postfix({'loss': loss.item(), 'acc': accuracy.item()})
+        epoch_loss = torch.as_tensor(loss_values).mean().item()
+        epoch_accuracy = torch.as_tensor(accuracy_values).mean().item()
+        print(f'[Epoch {epoch:02d}] loss: {epoch_loss:.3f}, acc: {epoch_accuracy:.1f}')

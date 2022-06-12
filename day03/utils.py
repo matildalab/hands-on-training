@@ -24,10 +24,7 @@ def parse_arguments():
     parser.add_argument('--async-dataloader', action='store_true', help="use async io mode for dataloader")
     parser.add_argument('--eight-bit-io', action='store_true', help="set input io to eight bit")
     parser.add_argument('--replicas', default=1, type=int, help='replication factor for data parallel')
-
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 def set_ipu_options(args):
@@ -63,13 +60,4 @@ class ModelWithNormalization(torch.nn.Module):
         self.normalize = transforms.Normalize(**IMAGENET_STATISTICS)
 
     def forward(self, img):
-        # One-liner in Poplar SDK >= 2.6:
-        # return self.model(self.normalize(img.to(self.dtype)))
-        if self.dtype == torch.float32:
-            img = img.float()
-        elif self.dtype == torch.float16:
-            img = img.half()
-        else:
-            raise Exception(f'Normalization dtype must be one of torch.float16 or torch.float32,'
-                            f' but {self.dtype} is given')
-        return self.model(self.normalize(img))
+        return self.model(self.normalize(img.to(self.dtype)))
