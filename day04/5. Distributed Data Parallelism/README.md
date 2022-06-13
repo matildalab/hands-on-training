@@ -279,10 +279,10 @@ Graph compilation: 100%|██████████| 100/100 [00:22<00:00]
 
 </p></details>
 
-However, a more efficient technique is there.
+However, DDP (Distributed Data Parallelism) is more efficient than just using more workers for data prefetching. (Of course, you can apply the both techniques at the same time.)
 
 
-### Step 4: Distributed Data Parallel
+### Step 4: Distributed Data Parallelism
 
 Now, let's try to run the training with `poprun`
 to leverage distributed data parallelism for the training.
@@ -348,7 +348,7 @@ python main.py \
   --eight-bit-io \
   --async-dataloader
 ```
-By specifying the above options to `poprun`, we are running the training with 8 model replicas distributed over 4 instances (i.e. 4 host processes),
+By specifying the options highlighted above to `poprun`, we are running the training with 8 model replicas distributed over 4 instances (i.e. 4 host processes),
 where each model replica resides over 2 IPUs.
 ```mermaid
 flowchart TB
