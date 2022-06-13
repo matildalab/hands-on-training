@@ -1,6 +1,7 @@
 # Memory and Performance Optimisation on the IPU
 
-This tutorial contains basic optimization tips for using IPUs. Check out [MEMORY AND PERFORMANCE OPTIMISATION ON THE IPU](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/index.html#memory-and-performance-optimisation-on-the-ipu) for more advanced techniques and [IPU_hands-on_day03.pdf](https://github.com/matildalab/hands-on-training/blob/main/day03/IPU_hands-on_day03.pdf) for more detailed explanation of the codes.
+This tutorial contains basic optimization tips for using IPUs. Check out [MEMORY AND PERFORMANCE OPTIMISATION ON THE IPU](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/index.html#memory-and-performance-optimisation-on-the-ipu) for more advanced techniques and [IPU_hands-on_day03.pdf](./IPU_hands-on_day03.pdf) for more detailed performance results.
+Note that this sample code is NOT heavily optimized in that several un-optimized implementations are used. This tutorial focuses on easy understanding of each techniques with minimum code changes.
 
 ## Half Precision
 
@@ -10,21 +11,26 @@ Several precision formats can be used during the model execution.
 - Half precision : FP16 for both the data and the model
 
 Using lower precision can reduce the memory usage dramatically. Poplar SDK contains many tools to support stable training with half precision, **so it's highly recommended to use half precision on the IPU**.
+
+Command:
 ```bash
-$ python main.py --precision 16.16 --gradient-accumulation 3
-Namespace(async_dataloader=False, batch_size=32, device_iterations=1, eight_bit_io=False, epochs=5, gradient_accumulation=3, precision='16.16', replicas=1)
+$ python main.py --batch-size 64 --precision 16.16 --gradient-accumulation 3
+```
+Output:
+```bash
+Namespace(async_dataloader=False, batch_size=64, device_iterations=1, eight_bit_io=False, epochs=5, gradient_accumulation=3, precision='16.16', replicas=1)
 Files already downloaded and verified
-Graph compilation: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [07:25<00:00]
-[Epoch 01]: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 520/520 [08:40<00:00,  1.00s/it, Loss=1.37]
-[Epoch 01] loss = 1.711
-[Epoch 02]: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 520/520 [01:00<00:00,  8.64it/s, Loss=1.27]
-[Epoch 02] loss = 1.271
-[Epoch 03]: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 520/520 [01:00<00:00,  8.63it/s, Loss=1.13]
-[Epoch 03] loss = 1.023
-[Epoch 04]: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 520/520 [01:00<00:00,  8.64it/s, Loss=1.14]
-[Epoch 04] loss = 0.873
-[Epoch 05]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 520/520 [01:00<00:00,  8.65it/s, Loss=0.746]
-[Epoch 05] loss = 0.750
+Graph compilation: 100%|██████████| 100/100 [08:16<00:00]
+[Epoch 01]: 100%|██████████| 260/260 [09:24<00:00,  2.17s/it, loss=1.51, acc=43.8]  
+[Epoch 01] loss: 1.760, acc: 37.2
+[Epoch 02]: 100%|██████████| 260/260 [00:52<00:00,  4.94it/s, loss=0.934, acc=65.6]
+[Epoch 02] loss: 1.286, acc: 53.2
+[Epoch 03]: 100%|██████████| 260/260 [00:52<00:00,  4.94it/s, loss=1.08, acc=64.1] 
+[Epoch 03] loss: 1.060, acc: 62.6
+[Epoch 04]: 100%|██████████| 260/260 [00:52<00:00,  4.95it/s, loss=0.747, acc=76.6]
+[Epoch 04] loss: 0.881, acc: 69.0
+[Epoch 05]: 100%|██████████| 260/260 [00:52<00:00,  4.95it/s, loss=0.641, acc=76.6]
+[Epoch 05] loss: 0.744, acc: 74.0
 ```
 More information can be found in the [documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#half-float16-support).
 
@@ -39,21 +45,26 @@ model.layer3[8] = poptorch.BeginBlock(model.layer3[8], ipu_id=1)
 So `ipus_per_replica=2`, meaning that gradient accumulation must be *at least 3*.\
 Increasing gradient accumulation results in higher throughput by maximizing the portion of [main execution phase](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#pipeline-operation) during pipelining.
 It also results in more samples per weight update without increase in memory usage.
+
+Command:
 ```bash
-$ python main.py --gradient-accumulation 8
-Namespace(async_dataloader=False, batch_size=32, device_iterations=1, eight_bit_io=False, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
+$ python main.py --batch-size 64 --precision 16.16 --gradient-accumulation 8
+```
+Output:
+```bash
+Namespace(async_dataloader=False, batch_size=64, device_iterations=1, eight_bit_io=False, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
 Files already downloaded and verified
-Graph compilation: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [07:26<00:00]
-[Epoch 01]: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████| 195/195 [08:29<00:00,  2.61s/it, Loss=1.53]
-[Epoch 01] loss = 1.817
-[Epoch 02]: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████| 195/195 [00:49<00:00,  3.93it/s, Loss=1.19]
-[Epoch 02] loss = 1.392
-[Epoch 03]: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████| 195/195 [00:49<00:00,  3.92it/s, Loss=1.04]
-[Epoch 03] loss = 1.156
-[Epoch 04]: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████| 195/195 [00:49<00:00,  3.92it/s, Loss=0.844]
-[Epoch 04] loss = 1.022
-[Epoch 05]: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████| 195/195 [00:49<00:00,  3.93it/s, Loss=0.824]
-[Epoch 05] loss = 0.864
+Graph compilation: 100%|██████████| 100/100 [08:20<00:00]
+[Epoch 01]: 100%|██████████| 97/97 [09:20<00:00,  5.78s/it, loss=1.56, acc=39.1]   
+[Epoch 01] loss: 1.900, acc: 33.7
+[Epoch 02]: 100%|██████████| 97/97 [00:46<00:00,  2.10it/s, loss=1.01, acc=67.2]
+[Epoch 02] loss: 1.375, acc: 50.0
+[Epoch 03]: 100%|██████████| 97/97 [00:46<00:00,  2.10it/s, loss=1.31, acc=54.7] 
+[Epoch 03] loss: 1.177, acc: 58.0
+[Epoch 04]: 100%|██████████| 97/97 [00:46<00:00,  2.11it/s, loss=0.935, acc=67.2]
+[Epoch 04] loss: 1.056, acc: 61.9
+[Epoch 05]: 100%|██████████| 97/97 [00:46<00:00,  2.09it/s, loss=0.905, acc=64.1]
+[Epoch 05] loss: 0.921, acc: 67.3
 ```
 Gradient accumulation can be set via poptorch option:
 ```python
@@ -65,21 +76,26 @@ More information can be found in the [documentation](https://docs.graphcore.ai/p
 ## Device Iterations
 
 Increasing device iterations reduces the training time by reducing the number of host-device communications. Note that setting the device iteration number higher than the optimal might cause I/O overhead which can be resulted in inefficient training.
+
+Command:
 ```bash
-$ python main.py --gradient-accumulation 8 --device-iterations 4
-Namespace(async_dataloader=False, batch_size=32, device_iterations=4, eight_bit_io=False, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
+$ python main.py --batch-size 64 --precision 16.16 --gradient-accumulation 8 --device-iteration 4
+```
+Output:
+```bash
+Namespace(async_dataloader=False, batch_size=64, device_iterations=4, eight_bit_io=False, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
 Files already downloaded and verified
-Graph compilation: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [07:26<00:00]
-[Epoch 01]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [08:27<00:00, 10.56s/it, Loss=1.46]
-[Epoch 01] loss = 1.794
-[Epoch 02]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:46<00:00,  1.02it/s, Loss=0.96]
-[Epoch 02] loss = 1.344
-[Epoch 03]: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:46<00:00,  1.02it/s, Loss=0.856]
-[Epoch 03] loss = 1.127
-[Epoch 04]: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:46<00:00,  1.02it/s, Loss=0.938]
-[Epoch 04] loss = 0.950
-[Epoch 05]: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:46<00:00,  1.02it/s, Loss=0.804]
-[Epoch 05] loss = 0.826
+Graph compilation: 100%|██████████| 100/100 [08:10<00:00]
+[Epoch 01]: 100%|██████████| 24/24 [09:11<00:00, 22.97s/it, loss=1.51, acc=45.3]  
+[Epoch 01] loss: 1.759, acc: 36.5
+[Epoch 02]: 100%|██████████| 24/24 [00:45<00:00,  1.88s/it, loss=1.11, acc=57.8]
+[Epoch 02] loss: 1.395, acc: 48.3
+[Epoch 03]: 100%|██████████| 24/24 [00:45<00:00,  1.88s/it, loss=0.841, acc=75] 
+[Epoch 03] loss: 1.251, acc: 55.1
+[Epoch 04]: 100%|██████████| 24/24 [00:45<00:00,  1.88s/it, loss=1.37, acc=54.7] 
+[Epoch 04] loss: 1.086, acc: 61.8
+[Epoch 05]: 100%|██████████| 24/24 [00:45<00:00,  1.88s/it, loss=0.744, acc=73.4]
+[Epoch 05] loss: 0.863, acc: 68.9
 ```
 Device iterations can be set via poptorch option:
 ```python
@@ -94,41 +110,50 @@ The data type of input data passed to the device from the host are normally `flo
 Host-Device I/O can be optimized by casting the input data to `uint8` type.
 In this case, normalization which results in casting the data to `float16`(or `float32`) should be conducted on the device.
 
+Command:
 ```bash
-$ python main.py --gradient-accumulation 8 --device-iterations 4 --eight-bit-io
-Namespace(async_dataloader=False, batch_size=32, device_iterations=4, eight_bit_io=True, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
+$ python main.py --batch-size 64 --precision 16.16 --gradient-accumulation 8 --device-iteration 4 --eight-bit-io
+```
+Output:
+```bash
+Namespace(async_dataloader=False, batch_size=64, device_iterations=4, eight_bit_io=True, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
 Files already downloaded and verified
-Graph compilation: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [07:26<00:00]
-[Epoch 01]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [07:56<00:00,  9.93s/it, Loss=1.42]
-[Epoch 01] loss = 1.769
-[Epoch 02]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:15<00:00,  3.06it/s, Loss=1.11]
-[Epoch 02] loss = 1.345
-[Epoch 03]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:15<00:00,  3.06it/s, Loss=1.18]
-[Epoch 03] loss = 1.130
-[Epoch 04]: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:15<00:00,  3.06it/s, Loss=0.835]
-[Epoch 04] loss = 0.989
-[Epoch 05]: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:15<00:00,  3.06it/s, Loss=0.888]
-[Epoch 05] loss = 0.887
+Graph compilation: 100%|██████████| 100/100 [08:07<00:00]
+[Epoch 01]: 100%|██████████| 24/24 [08:35<00:00, 21.48s/it, loss=1.65, acc=34.4]  
+[Epoch 01] loss: 1.848, acc: 32.6
+[Epoch 02]: 100%|██████████| 24/24 [00:13<00:00,  1.77it/s, loss=1.33, acc=51.6]
+[Epoch 02] loss: 1.334, acc: 51.8
+[Epoch 03]: 100%|██████████| 24/24 [00:13<00:00,  1.77it/s, loss=1.44, acc=50]   
+[Epoch 03] loss: 1.205, acc: 56.3
+[Epoch 04]: 100%|██████████| 24/24 [00:13<00:00,  1.77it/s, loss=0.639, acc=81.2]
+[Epoch 04] loss: 1.004, acc: 63.4
+[Epoch 05]: 100%|██████████| 24/24 [00:13<00:00,  1.77it/s, loss=0.903, acc=71.9]
+[Epoch 05] loss: 0.926, acc: 67.2
 ```
 
 ## Asynchronous Data Loading
 
 Asynchronous mode can reduce host overhead by offloading the data loading process to a seperate thread. By this mode, the host can start loading the next batch while the IPU is running.
+
+Command:
 ```bash
-$ python main.py --gradient-accumulation 8 --device-iterations 4 --eight-bit-io --async-dataloader
-Namespace(async_dataloader=True, batch_size=32, device_iterations=4, eight_bit_io=True, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
+$ python main.py --batch-size 64 --precision 16.16 --gradient-accumulation 8 --device-iteration 4 --eight-bit-io --async-dataloader
+```
+Output:
+```bash
+Namespace(async_dataloader=True, batch_size=64, device_iterations=4, eight_bit_io=True, epochs=5, gradient_accumulation=8, precision='16.16', replicas=1)
 Files already downloaded and verified
-Graph compilation: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [07:25<00:00]
-[Epoch 01]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [07:47<00:00,  9.74s/it, Loss=1.52]
-[Epoch 01] loss = 1.788
-[Epoch 02]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:08<00:00,  5.62it/s, Loss=1.17]
-[Epoch 02] loss = 1.333
-[Epoch 03]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:08<00:00,  5.60it/s, Loss=1.07]
-[Epoch 03] loss = 1.174
-[Epoch 04]: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:08<00:00,  5.73it/s, Loss=1.15]
-[Epoch 04] loss = 1.033
-[Epoch 05]: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████| 48/48 [00:08<00:00,  5.78it/s, Loss=0.842]
-[Epoch 05] loss = 0.869
+Graph compilation: 100%|██████████| 100/100 [08:10<00:00]
+[Epoch 01]: 100%|██████████| 24/24 [08:32<00:00, 21.35s/it, loss=1.27, acc=50]    
+[Epoch 01] loss: 1.758, acc: 34.2
+[Epoch 02]: 100%|██████████| 24/24 [00:08<00:00,  2.75it/s, loss=1.4, acc=50]   
+[Epoch 02] loss: 1.352, acc: 49.4
+[Epoch 03]: 100%|██████████| 24/24 [00:08<00:00,  2.71it/s, loss=1.03, acc=65.6] 
+[Epoch 03] loss: 1.200, acc: 56.9
+[Epoch 04]: 100%|██████████| 24/24 [00:08<00:00,  2.78it/s, loss=0.954, acc=65.6]
+[Epoch 04] loss: 1.039, acc: 64.2
+[Epoch 05]: 100%|██████████| 24/24 [00:08<00:00,  2.76it/s, loss=1.1, acc=62.5]  
+[Epoch 05] loss: 1.003, acc: 65.1
 ```
 Asynchronous data loading can be set via argument of the `poptorch.DataLoader`.
 ```python
@@ -142,3 +167,6 @@ train_dataloader = poptorch.DataLoader(opts,
                                         mode=mode)
 ```
 More information can be found in the [documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-asynchronousdataaccessor).
+
+## Next Step
+Accelerate even further with [distributed data parallelism](../day04).
