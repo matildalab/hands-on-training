@@ -38,7 +38,7 @@ Note that there're three reduction ops supported by horovod:
 * Adasum
 ```python
         print(f'Before grouped allreduce: x = {x}, y = {y}')
-        x, y = <strong>hvd.grouped_allreduce([x, y], op=hvd.Average)</strong>
+        x, y = hvd.grouped_allreduce([x, y], op=hvd.Average)
         print(f'Before grouped allreduce: x = {x}, y = {y}')
 ```
 
