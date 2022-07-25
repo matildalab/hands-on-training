@@ -9,7 +9,7 @@ Here are some useful commands and options.
 
 * `-l` or `--list-devices`: The `--list-devices` command displays a list of all devices in the active partition. This includes all individual IPUs and all logical devices composed of multiple IPUs.
 
-	<details><summary>*Example*</summary><p>
+	<details><summary><strong>Example</strong></summary><p>
 
 	```
 	$ gc-info --list-devices # same as gc-info -l
@@ -36,7 +36,7 @@ Here are some useful commands and options.
 	
 	You can see what devices are available in other partitions by using the --all-partitions option flag.
 	
-	<details><summary>*Example*</summary><p>
+	<details><summary><strong>Example</strong></summary><p>
 	
 	```
 	gc-info -l --all-partitions
@@ -58,7 +58,7 @@ Here are some useful commands and options.
 * `-d` or `--device-id`: You can specify one of the IPU device IDs discovered by `gc-info -l` via `--device-id` option to figure out more about a specific IPU device.
 	* `--device-info`: The `--device-info` command displays the device attributes of the specified device.
 	
-	<details><summary>*Example*</summary><p>
+	<details><summary><strong>Example</strong></summary><p>
 		
 	```
 	$ gc-info --device-info -d 0
@@ -111,7 +111,7 @@ Here are some useful commands and options.
 
 	* `--tile-overview`: The `--tile-overview` command will show a representation of the sync state of all the tiles of the IPU or IPUs this device is connected to.
 	
-	<details><summary>*Example*</summary><p>
+	<details><summary><strong>Example</strong></summary><p>
 	
 	```
 	$ gc-info -d 0 --tile-overview
@@ -131,7 +131,7 @@ You can use this command to monitor IPU activity without affecting users of the 
 * Make sure code is correctly running on an IPU.
 * Monitor performance: the power and temp will increase, and the clock rate will drop when an IPU is heavily loaded.
 
-<details><summary>*Example*</summary><p>
+<details><summary><strong>Example</strong></summary><p>
 
 ```
 +---------------+--------------------------------------------------------------------------------+
@@ -164,7 +164,7 @@ Here are some useful options.
 
 * --no-card-info: Don’t display card information
 
-<details><summary>*Example*</summary><p>
+<details><summary><strong>Example</strong></summary><p>
 
 ```
 +------------------------------------------------------------------------+------------------------+-----------------+
