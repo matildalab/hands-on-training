@@ -40,10 +40,11 @@ The "enable.sh" scripts will add required paths for using the Poplar SDK to the 
 **If you add these two lines in your `~/.bashrc` or `~/.profile`, then you don't need to do this every time you login.**
 
 
-<details><summary>**Alternative Trick (unofficial)**</summary><p>
-Copy and paste the following bash functions in your `~/.bashrc` or `~/.profile`, and then logout and login again. (or just `source ~/.bashrc` for `source ~/.profile` depending on where you pasted the contents.)
+#### Unofficial Trick
+<details><summary><strong> Expand to read </strong></summary><p>
+Copy and paste the following bash functions in your <code>~/.bashrc</code> or <code>~/.profile</code>, and then logout and login again. (or just <code>source ~/.bashrc</code> or <code>source ~/.profile</code> depending on where you pasted the contents.)
 
-<details><summary>***Contents to copy and paste***</summary><p>
+<details><summary><strong> Contents to copy and paste </strong></summary><p>
 
 ```bash
 function gc-activate () {
