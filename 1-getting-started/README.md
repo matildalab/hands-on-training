@@ -3,7 +3,7 @@
 You can download the latest Poplar SDK at [Graphcore software download portal](https://downloads.graphcore.ai). (You need to request for an account to a Graphcore Field Engineer.)
 
 ## Activating the Poplar SDK
-### i) Unpack the tar tarball file
+### i) Unpack the tarball file
 First of all, unpack the tarball file downloaded from the download portal, typically named `poplar_sdk-<os-name>-<version-string>-<commit-hash>.tar.gz`.
 
 ```bash
