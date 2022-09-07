@@ -32,17 +32,15 @@ if __name__ == '__main__':
     train_dataset = torchvision.datasets.CIFAR10(root='../datasets', train=True, download=True, transform=transform)
 
     opts = poptorch.Options()
-    opts.enableExecutableCaching('../cache')
     opts.Training.gradientAccumulation(3)
     opts.replicationFactor(2)
 
     model = torchvision.models.resnet50()
     model.layer4 = poptorch.BeginBlock(model.layer4, ipu_id=1)
-    print(model)
 
     train_dataloader = poptorch.DataLoader(opts,
                                         train_dataset,
-                                        batch_size=16,
+                                        batch_size=8,
                                         shuffle=True)
 
     optimizer = poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)

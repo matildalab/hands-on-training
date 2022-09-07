@@ -2,13 +2,12 @@
 
 ## How to setup
 
-To use pytorch, you have to install poptorch which makes pytorch use Poplar libraries at the backend.
 Let's create a virtual environment and activate it first
 ```bash
-$ virtualenv venv_pytorch -p python3
-$ source venv_pytorch/bin/activate
+$ virtualenv ../../venv_pytorch -p python3
+$ source ../../venv_pytorch/bin/activate
 ```
-Install poptorch.
+To use pytorch, you have to install poptorch which makes pytorch use Poplar libraries at the backend.
 ```bash
 (venv_pytorch)$ pip install [SDK-path]/poptorch*.whl
 ```
@@ -113,14 +112,14 @@ But, as we normally use a model imported from 3rd party libraries, we will creat
                                             options=opts,
                                             optimizer=optimizer)
 ```
-`poptorch.trainingModel` will automatically detect [torch loss](://pytorch.org/docs/stable/nn.html#loss-functions) instances as the loss. However, if you use some custom modified loss, you have to wrap it with `poptorch.identity_loss` to allow `poptorch.trainingModel` detect it.
+`poptorch.trainingModel` will automatically detect [torch loss](https://pytorch.org/docs/stable/nn.html#loss-functions) instances as the loss. However, if you use some custom modified loss, you have to wrap it with `poptorch.identity_loss` to allow `poptorch.trainingModel` detect it.
 ```diff
     loss = self.criterion(output, labels)
 -   return output, loss
 +   return output, poptorch.identity_loss(loss, reduction='sum')
 ```
 
-### Dataset
+### DataLoader
 To leverage IPU specific optimizaiton techniques, you should use `poptorch.DataLoader` instead of `torch.utils.data.DataLoader`. Details of those techniques will be introduced in the later chapters.
 ```diff
     train_dataset = torchvision.datasets.FashionMNIST(

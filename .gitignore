@@ -5,3 +5,5 @@ datasets
 *cbor
 *log
 profile.pop*
+venv_pytorch
+venv_tf

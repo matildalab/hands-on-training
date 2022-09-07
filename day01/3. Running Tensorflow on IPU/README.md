@@ -2,13 +2,12 @@
 
 ## How to setup
 
-Instead of using the original tensorflow, we will use IPU-tensorflow included in the SDK. If you use Keras, you should install IPU-keras as well. They are all included in the SDK.
 Let's create a virtual environment and activate it first
 ```bash
-$ virtualenv venv_tf -p python3
-$ source venv_tf/bin/activate
+$ virtualenv ../../venv_tf -p python3
+$ source ../../venv_tf/bin/activate
 ```
-Install `tensorflow`, `ipu_tensorflow_addons` and `keras`. `ipu_tensorflow_addons` includes some IPU-optimized layers and IPU-optimized optimizers. When installing `tensorflow` and `ipu_tensorflow_addons`, you have to specify cpu vendor and tensorflow version between tensorflow1 and tensorflow2.
+Instead of using the original tensorflow, we will use IPU-tensorflow included in the SDK. If you use Keras, you should install IPU-keras as well. They are all included in the SDK. Install `tensorflow`, `keras` and `ipu_tensorflow_addons`. `ipu_tensorflow_addons` includes some IPU-optimized layers and IPU-optimized optimizers. When installing `tensorflow` and `ipu_tensorflow_addons`, you have to specify cpu vendor and tensorflow version between tensorflow1 and tensorflow2.
 
 You can check the cpu vendor with `cat /proc/cpuinfo` command.
 ```bash
@@ -36,6 +35,8 @@ Porting tensorflow is much simpler than pytorch as we use IPU-tensorflow from th
 
 You have to initialize `ipu.config.IPUConfig()` first and you can set IPU configuration with it. For example, you can specify a number of IPU to be used with `config.auto_select_ipus`. After setting configuration you must call `configure_ipu_system()`, so that the configuration is actually applied to IPU.
 ```diff
++   from tensorflow.python import ipu
+
 +   config = ipu.config.IPUConfig()
 +   config.auto_select_ipus = 1
 +   config.configure_ipu_system()
