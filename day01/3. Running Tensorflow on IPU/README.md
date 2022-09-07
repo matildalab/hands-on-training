@@ -8,7 +8,7 @@ Let's create a virtual environment and activate it first
 $ virtualenv venv_tf -p python3
 $ source venv_tf/bin/activate
 ```
-Install `tensorflow`, `tensorflow_addons` and `keras`. `tensorflow_addons` includes some IPU-optimized layers and IPU-optimized optimizers. When installing `tensorflow` and `tensorflow_addons`, you have to specify cpu vendor and tensorflow version between tensorflow1 and tensorflow2.
+Install `tensorflow`, `ipu_tensorflow_addons` and `keras`. `ipu_tensorflow_addons` includes some IPU-optimized layers and IPU-optimized optimizers. When installing `tensorflow` and `ipu_tensorflow_addons`, you have to specify cpu vendor and tensorflow version between tensorflow1 and tensorflow2.
 
 You can check the cpu vendor with `cat /proc/cpuinfo` command.
 ```bash
@@ -43,11 +43,29 @@ You have to initialize `ipu.config.IPUConfig()` first and you can set IPU config
 
 ### IPUStrategy
 
-Then you need to initialize `ipu.ipu_strategy.IPUStrategy()` which ensures the program targets a system with one or more IPUs. And you should `strategy.scope()` context to ensure that everything within that context will be compiled for the IPU device. You should do this instead of using the `tf.device` context.
+Then you need to initialize `ipu.ipu_strategy.IPUStrategy()` which ensures the program targets a system with one or more IPUs. And you should use `strategy.scope()` context to ensure that everything within that context will be compiled for the IPU device. You should do this instead of using the `tf.device` context.
 ```diff
 +   strategy = ipu.ipu_strategy.IPUStrategy()
 +   with strategy.scope():
-        ...
+        model = create_model()
+
+        model.compile(
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+            optimizer=tf.keras.optimizers.RMSprop(),
+            metrics=["accuracy"],
+        )
+
+        model.fit(dataset, epochs=5)
+```
+
+### IPU Tensorflow Addons
+
+As mentioned before, `ipu_tensorflow_addons` offers various IPU-optimized [layers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/ipu_tensorflow_addons/ipu_tensorflow_addons.html#keras-layers) and [optimizers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/ipu_tensorflow_addons/ipu_tensorflow_addons.html#optimizers). They show faster execution and use less memory and also have some IPU-specific arguments for extreme optimization. So, if your model has any of these layers and optimizers, it is highly recommended to replace them with the one from `ipu_tensorflow_addons`.
+
+For example, if you use `LSTM` layers in your model, you can simply replace it by importing it from `ipu_tensorflow_addons`.
+```diff
+-   from tensorflow.keras.layers import LSTM
++   from ipu_tensorflow_addons.keras.layers import LSTM
 ```
 
 ## Running the code
