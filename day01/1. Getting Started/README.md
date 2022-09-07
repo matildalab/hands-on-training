@@ -63,3 +63,5 @@ POPLAR version 2.6.0 (e0ab3b4f12)
 clang version 15.0.0 (765f0d82adc5d9261ca9d1f86d11b594a33bd784)
 ```
 Now, you are ready to run programs on IPU.
+
+[Continue to the next chapter](../2.%20Running%20Pytorch%20on%20IPU)

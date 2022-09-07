@@ -229,3 +229,5 @@ While running the code, you can check IPU utilization through `gc-monitor` comma
 ```
 
 For more details, please visit [IPU Pytorch User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/index.html)
+
+[Continue to the next chapter](../3.%20Running%20Tensorflow%20on%20IPU)

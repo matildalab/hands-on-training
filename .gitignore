@@ -2,3 +2,6 @@
 cache
 datasets
 **/.DS_Store
+*cbor
+*log
+profile.pop*

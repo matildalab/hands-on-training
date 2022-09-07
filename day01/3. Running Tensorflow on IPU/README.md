@@ -107,3 +107,5 @@ While running the code, you can check IPU utilization through `gc-monitor` comma
 ```
 
 For for details, please visit [IPU Tensorflow2 User Guide](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/index.html)
+
+[Continue to the next chapter](../../day02)
