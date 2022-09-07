@@ -57,7 +57,6 @@ if __name__ == '__main__':
         "../datasets", transform=transform, download=True, train=False)
 
     opts = poptorch.Options()
-    opts.enableExecutableCaching('../cache')
 
     model = ClassificationModel()
     model.train()
